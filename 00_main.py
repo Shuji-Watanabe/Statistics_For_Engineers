@@ -12,20 +12,36 @@ data_df = pd.DataFrame({"番号":data_list0
                         ,"点数":data_list2
                         ,"y ":data_list3})
 
+data_df = pd.read_csv("./data/data02.csv")
 
-def vis_quartile(dataframe,graphtype=1,tics_num=9):
+def vis_quartile(dataframe
+                 ,graphtype=1
+                 ,tics_num=9
+                 ,font_size = 13
+                 ,tics_font_size = 18
+                 ,annotation_font_size = 20
+                 ,vline_width = 2
+                 ,disp_width=800,disp_height=200
+                 ):
     """dataframe: No,label,data,1  
-       graphtype: 1:consecutive number, 2:data """
+       graphtype: 1:consecutive number, 2:data
+    """
 
     data_df=dataframe
     data_keys = list(data_df.keys())
     data_size = len(data_df)
     qu_rate_list = [0.0, 0.25, 0.50, 0.75, 1.00]
     n_qu_list = []
-    #Set param
-    annotation_fsize,fsize,ticsfsize = 14,10,20
-    vline_width = 2
-    disp_width , disp_height= 800, 200
+
+    #Set parameter of this function
+    fsize = font_size
+    ticsfsize = tics_font_size
+    annotation_fsize = annotation_font_size
+    vline_width = vline_width
+    disp_width= disp_width
+    disp_height = disp_height
+
+
     for qu_index in qu_rate_list:
         tmp_n = 1 + qu_index*(data_size-1)
         x_a = int(tmp_n)
@@ -33,15 +49,16 @@ def vis_quartile(dataframe,graphtype=1,tics_num=9):
         n_qu_list.append([tmp_n,x_a,x_rate])
     
     if graphtype==1:
-        fig = px.scatter(data_df, 
-                        x=data_keys[0], y=data_keys[3], text=data_keys[2]
+        fig = px.scatter(data_df
+                        ,x=data_keys[0]
+                        ,y=data_keys[3]
+                        ,text=data_keys[2]
                         )
         fig.update_yaxes(showticklabels=False
                         ,range=[0.5, 1.5]
                         ,linecolor='black', linewidth=1, mirror=True)
         fig.update_xaxes(range=[0, data_size+1]
-                        ,dtick=1
-                        ,tickvals=list(np.arange(1,data_size+1,1))
+                        ,tickvals=list(np.linspace(1, data_size, tics_num))
                         ,linecolor='black', linewidth=1, mirror=True
                         )
 
@@ -62,14 +79,14 @@ def vis_quartile(dataframe,graphtype=1,tics_num=9):
                         ,yaxis_title=""
                         ,width=disp_width, height=disp_height
                         ,xaxis = dict(
-                                        tickfont = dict(size=ticsfsize)
-                                        )
+                                       tickfont = dict(size=ticsfsize)
+                                       )
                         )
 
     elif graphtype==2:
         data_text = data_df[data_keys[0]]
         data_x = data_df[data_keys[2]]
-        data_y = data_df[data_keys[3]]
+        data_y = [1]*data_size
         data_max = data_x.max()
         data_min = data_x.min()
         data_range = data_max - data_min
@@ -115,9 +132,24 @@ def vis_quartile(dataframe,graphtype=1,tics_num=9):
                                         )
                         ,width=disp_width, height=disp_height
                         )
-    st.components.v1.html(fig.to_html(include_mathjax='cdn'),width=disp_width+10,height=disp_height+10)
+    return fig
 
-ntics = st.number_input("横軸の刻みの個数",value=9,min_value=1)
+disp_col = st.columns([1,1,1,1,1])
+with disp_col[0]:
+    ntics = st.number_input("横軸の刻みの個数",value=9,min_value=1,key="disp1")
+fig = vis_quartile(dataframe=data_df
+            ,graphtype=1
+            ,tics_num=ntics)
+st.components.v1.html(fig.to_html(include_mathjax='cdn'),width=820,height=220)
 
-vis_quartile(data_df,graphtype=1,tics_num=ntics)
-vis_quartile(data_df,graphtype=2,tics_num=ntics)
+
+disp_col = st.columns([1,1,1,1,1])
+
+with disp_col[1]:
+    ntics = st.number_input("横軸の刻みの個数",value=9,min_value=1,key="disp2")
+fig = vis_quartile(dataframe=data_df
+            ,graphtype=2
+            ,tics_num=ntics)
+st.components.v1.html(fig.to_html(include_mathjax='cdn')
+                      ,width=820
+                      ,height=220)
